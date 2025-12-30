@@ -142,7 +142,7 @@ class AllCategoriesPage extends StatelessWidget {
             ),
             
             const SizedBox(height: 12),
-            
+
             // Nama kategori
             Text(
               category['title'],
@@ -150,36 +150,6 @@ class AllCategoriesPage extends StatelessWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
-              ),
-            ),
-            
-            const SizedBox(height: 4),
-            
-            // Jumlah venue
-            Text(
-              '${category['venues']} venue',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            // Indikator "Tersedia"
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.accentGreen.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Tersedia',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.green[700],
-                ),
               ),
             ),
           ],

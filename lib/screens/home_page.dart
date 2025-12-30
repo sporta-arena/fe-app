@@ -11,6 +11,7 @@ import 'my_booking_page.dart'; // Import Halaman My Booking
 import 'profile_page.dart'; // Import Halaman Profile
 import '../services/venue_service.dart';
 import '../services/auth_service.dart';
+import '../services/favorite_service.dart'; // Import Favorite Service
 import '../models/venue.dart' as model;
 
 class HomePage extends StatefulWidget {
@@ -99,6 +100,9 @@ class _DashboardContentState extends State<DashboardContent> {
   // Data venue dari API
   List<model.Venue> _apiVenues = [];
 
+  // Favorite Service
+  final FavoriteService _favoriteService = FavoriteService();
+
   // Data venue dari API (tidak pakai hardcode lagi)
   // Hardcoded dummy data sudah di-comment out - hanya ambil dari API
 
@@ -111,6 +115,21 @@ class _DashboardContentState extends State<DashboardContent> {
     _loadVenuesFromApi(); // Load venues dari API
     _getCurrentLocation(); // Otomatis cari lokasi saat dibuka
     // _setDefaultVenues(); // DISABLED - tidak pakai hardcode lagi
+
+    // Listen to favorite changes
+    _favoriteService.addListener(_onFavoritesChanged);
+  }
+
+  @override
+  void dispose() {
+    _favoriteService.removeListener(_onFavoritesChanged);
+    super.dispose();
+  }
+
+  void _onFavoritesChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   // --- LOAD VENUES DARI API ---
@@ -251,23 +270,39 @@ class _DashboardContentState extends State<DashboardContent> {
 
     List<Map<String, dynamic>> venuesWithDistance = [];
     
-    for (var venue in _allVenues) {
+    // Convert _apiVenues to Map format for distance calculation
+    for (var venue in _apiVenues) {
+      // Skip venues without coordinates
+      if (venue.latitude == null || venue.longitude == null) continue;
+      
+      Map<String, dynamic> venueMap = {
+        'id': venue.id,
+        'name': venue.name,
+        'location': '${venue.address}, ${venue.city}',
+        'price': 150000, // Default price, should come from fields
+        'rating': 4.5, // Default rating
+        'category': 'Sports', // Default category
+        'latitude': venue.latitude!,
+        'longitude': venue.longitude!,
+        'imageUrl': venue.coverImageUrl ?? '',
+      };
+      
       double distance = Geolocator.distanceBetween(
         _currentPosition!.latitude,
         _currentPosition!.longitude,
-        venue['latitude'],
-        venue['longitude'],
+        venue.latitude!,
+        venue.longitude!,
       );
       
       // Convert meter ke kilometer
       double distanceKm = distance / 1000;
       
-      venue['distance'] = distanceKm;
-      venue['distanceText'] = distanceKm < 1 
+      venueMap['distance'] = distanceKm;
+      venueMap['distanceText'] = distanceKm < 1 
           ? '${(distance).round()} m'
           : '${distanceKm.toStringAsFixed(1)} km';
       
-      venuesWithDistance.add(venue);
+      venuesWithDistance.add(venueMap);
     }
     
     // Sort berdasarkan jarak terdekat
@@ -281,9 +316,19 @@ class _DashboardContentState extends State<DashboardContent> {
   // --- SET DEFAULT VENUES JIKA GPS GAGAL ---
   void _setDefaultVenues() {
     setState(() {
-      _nearbyVenues = _allVenues.take(3).map((venue) {
-        venue['distanceText'] = '-- km';
-        return venue;
+      _nearbyVenues = _apiVenues.take(3).map((venue) {
+        return {
+          'id': venue.id,
+          'name': venue.name,
+          'location': '${venue.address}, ${venue.city}',
+          'price': 150000, // Default price
+          'rating': 4.5, // Default rating
+          'category': 'Sports', // Default category
+          'latitude': venue.latitude ?? 0.0,
+          'longitude': venue.longitude ?? 0.0,
+          'imageUrl': venue.coverImageUrl ?? '',
+          'distanceText': '-- km',
+        };
       }).toList();
     });
   }
@@ -408,7 +453,9 @@ class _DashboardContentState extends State<DashboardContent> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            Divider(color: Colors.grey.shade200, thickness: 1),
+            const SizedBox(height: 20),
 
             // --- 5. KATEGORI OLAHRAGA ---
             Row(
@@ -443,7 +490,9 @@ class _DashboardContentState extends State<DashboardContent> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            Divider(color: Colors.grey.shade200, thickness: 1),
+            const SizedBox(height: 20),
 
             // --- 6. NEARBY ARENA ---
             Row(
@@ -507,7 +556,7 @@ class _DashboardContentState extends State<DashboardContent> {
                     ),
                   )
                 : Column(
-                    children: _nearbyVenues.map((venue) => 
+                    children: _nearbyVenues.map((venue) =>
                       NearbyVenueCard(
                         name: venue['name'],
                         location: venue['location'],
@@ -520,6 +569,42 @@ class _DashboardContentState extends State<DashboardContent> {
                       )
                     ).toList(),
                   ),
+
+            // --- 7. FAVORITES SECTION ---
+            if (_favoriteService.favorites.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Divider(color: Colors.grey.shade200, thickness: 1),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.favorite, color: Colors.red, size: 20),
+                      const SizedBox(width: 8),
+                      const Text("Favorit Saya", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    ],
+                  ),
+                  Text(
+                    "${_favoriteService.favorites.length} venue",
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Column(
+                children: _favoriteService.favorites.map((venue) =>
+                  FavoriteVenueCard(
+                    venue: venue,
+                    onRemove: () {
+                      _favoriteService.removeFavorite(venue.id);
+                    },
+                  )
+                ).toList(),
+              ),
+            ],
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -1114,6 +1199,201 @@ class LoyaltyCard extends StatelessWidget {
             
             const SizedBox(width: 8),
             const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// FAVORITE VENUE CARD WIDGET
+// ==========================================
+
+class FavoriteVenueCard extends StatelessWidget {
+  final FavoriteVenue venue;
+  final VoidCallback onRemove;
+
+  const FavoriteVenueCard({
+    super.key,
+    required this.venue,
+    required this.onRemove,
+  });
+
+  String _formatPrice(int price) {
+    return "Rp ${price.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.'
+    )}";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const VenueDetailPage()),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.red.shade100),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Image placeholder
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.sports,
+                color: Colors.red.shade200,
+                size: 30,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    venue.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, size: 12, color: Colors.grey[500]),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          venue.address,
+                          style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.star, color: Colors.orange, size: 10),
+                            const SizedBox(width: 2),
+                            Text(
+                              venue.rating.toString(),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0047FF).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          venue.category,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF0047FF),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Remove button
+            IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text(
+                      "Hapus dari Favorit?",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    content: Text(
+                      "Hapus ${venue.name} dari daftar favorit?",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          "Batal",
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onRemove();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          "Hapus",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              icon: Icon(
+                Icons.favorite,
+                color: Colors.red.shade400,
+                size: 22,
+              ),
+            ),
           ],
         ),
       ),

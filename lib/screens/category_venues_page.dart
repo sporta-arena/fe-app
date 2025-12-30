@@ -380,25 +380,13 @@ class _CategoryVenuesPageState extends State<CategoryVenuesPage> {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.categoryName,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        '${filteredVenues.length} venue tersedia',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    widget.categoryName,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
               ],
@@ -532,26 +520,6 @@ class _CategoryVenuesPageState extends State<CategoryVenuesPage> {
                     widget.categoryIcon,
                     size: 60,
                     color: Colors.white.withOpacity(0.7),
-                  ),
-                ),
-                // Status badge
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: venue['available'] ? Colors.green : Colors.red,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      venue['available'] ? 'Tersedia' : 'Penuh',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                   ),
                 ),
                 // Rating badge
@@ -1017,21 +985,6 @@ class VenueSearchDelegate extends SearchDelegate<String> {
               ],
             ),
           ],
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: venue['available'] ? Colors.green : Colors.red,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            venue['available'] ? 'Tersedia' : 'Penuh',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ),
         onTap: () {
           // Handle venue selection

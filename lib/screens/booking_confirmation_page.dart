@@ -3,6 +3,7 @@ import 'payment_processing_page.dart'; // Import halaman payment processing
 
 class BookingConfirmationPage extends StatefulWidget {
   final String venueName;
+  final String venueAddress;
   final String selectedDate; // Format: YYYY-MM-DD
   final String selectedTime;
   final int price;
@@ -10,6 +11,7 @@ class BookingConfirmationPage extends StatefulWidget {
   const BookingConfirmationPage({
     super.key,
     required this.venueName,
+    this.venueAddress = "Jl. Sudirman No. 123, Jakarta Selatan",
     required this.selectedDate,
     required this.selectedTime,
     required this.price,
@@ -200,16 +202,39 @@ class _BookingConfirmationPageState extends State<BookingConfirmationPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.venueName, 
+                          widget.venueName,
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold, 
+                            fontWeight: FontWeight.bold,
                             fontSize: 16
                           )
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          "${widget.selectedDate} • Jam ${widget.selectedTime}", 
-                          style: TextStyle(color: Colors.grey[600])
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Icon(Icons.location_on_outlined, size: 14, color: Colors.grey[500]),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                widget.venueAddress,
+                                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey[500]),
+                            const SizedBox(width: 4),
+                            Text(
+                              "${widget.selectedDate} • ${widget.selectedTime}",
+                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -218,11 +243,13 @@ class _BookingConfirmationPageState extends State<BookingConfirmationPage> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            Divider(color: Colors.grey.shade200, thickness: 1),
+            const SizedBox(height: 16),
 
             // --- 2. DATA PEMESAN ---
             const Text(
-              "Data Pemesan", 
+              "Data Pemesan",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
             ),
             const SizedBox(height: 12),
@@ -241,11 +268,13 @@ class _BookingConfirmationPageState extends State<BookingConfirmationPage> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            Divider(color: Colors.grey.shade200, thickness: 1),
+            const SizedBox(height: 16),
 
             // --- 3. METODE PEMBAYARAN ---
             const Text(
-              "Metode Pembayaran", 
+              "Metode Pembayaran",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
             ),
             const SizedBox(height: 12),
@@ -257,11 +286,13 @@ class _BookingConfirmationPageState extends State<BookingConfirmationPage> {
               method['icon']
             )).toList(),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            Divider(color: Colors.grey.shade200, thickness: 1),
+            const SizedBox(height: 16),
 
             // --- 4. RINCIAN HARGA ---
             const Text(
-              "Rincian Pembayaran", 
+              "Rincian Pembayaran",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
             ),
             const SizedBox(height: 12),

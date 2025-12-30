@@ -25,8 +25,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
       "icon": Icons.calendar_month_outlined,
     },
     {
-      "title": "Pembayaran Aman",
-      "desc": "Bayar pakai QRIS, uang langsung diteruskan ke pemilik lapangan (Split Payment).",
+      "title": "Bayar Praktis & Instan",
+      "desc": "Dukung pembayaran via QRIS, E-Wallet, dan semua Bank besar di Indonesia.",
       "icon": Icons.qr_code_scanner_rounded,
     },
   ];

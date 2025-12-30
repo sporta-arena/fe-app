@@ -5,21 +5,36 @@ class ApiConfig {
   // Local development URL
   static const String localUrl = 'http://localhost:8088';
 
+  // Android Emulator URL (10.0.2.2 = localhost dari emulator)
+  static const String androidEmulatorUrl = 'http://10.0.2.2:8088';
+
   // Production URL (ganti dengan URL production nanti)
   static const String productionUrl = 'https://api.sporta.id';
 
   // Environment check
   static bool get isProduction => const bool.fromEnvironment('dart.vm.product');
 
-  // Use ngrok for development (mobile device testing)
-  static bool useNgrok = true;
+  // PILIH SATU:
+  // - 'ngrok' = HP fisik
+  // - 'ios' = iOS Simulator (localhost)
+  // - 'android' = Android Emulator (10.0.2.2)
+  static String devMode = 'ios'; // GANTI SESUAI DEVICE
 
   // Get base URL
   static String get baseUrl {
     if (isProduction) {
       return productionUrl;
     }
-    return useNgrok ? ngrokUrl : localUrl;
+    // Untuk development
+    switch (devMode) {
+      case 'ios':
+        return localUrl; // localhost works for iOS simulator
+      case 'android':
+        return androidEmulatorUrl; // 10.0.2.2 for Android emulator
+      case 'ngrok':
+      default:
+        return ngrokUrl; // ngrok for physical devices
+    }
   }
 
   // API base URL (with /api prefix)

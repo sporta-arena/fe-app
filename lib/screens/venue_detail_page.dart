@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'booking_confirmation_page.dart';
+import '../services/favorite_service.dart';
 
 class VenueDetailPage extends StatefulWidget {
   // Di aplikasi nyata, kamu akan menerima ID venue di sini
@@ -17,12 +18,18 @@ class _VenueDetailPageState extends State<VenueDetailPage> {
   DateTime _selectedDate = DateTime.now(); // Tanggal yang dipilih (default hari ini)
   String? _selectedTimeSlot; // Jam yang dipilih user (baru bisa pilih 1 jam dulu)
   int _currentImageIndex = 0; // Untuk indikator slider foto
+  bool _isFavorite = false; // Status favorite
+
+  // --- FAVORITE SERVICE ---
+  final FavoriteService _favoriteService = FavoriteService();
 
   // --- DATA DUMMY VENUE ---
+  final String _venueId = "venue_001"; // ID unik venue
   final String _venueName = "Gor Futsal Champions";
   final int _pricePerHour = 150000;
   final double _rating = 4.8;
   final String _address = "Jl. Kemang Raya No. 10, Jakarta Selatan";
+  final String _category = "Futsal";
   final String _description = "Lapangan futsal standar internasional dengan rumput sintetis kualitas terbaik. Dilengkapi lampu LED terang untuk main malam, tribun penonton, dan ventilasi udara yang baik.";
   final List<String> _facilities = ["Parkir Luas", "Kamar Mandi", "Locker", "Kantin", "Mushola", "Wifi"];
   final List<Color> _photoColors = [Colors.blue, Colors.green, Colors.orange]; // Placeholder foto
@@ -41,6 +48,42 @@ class _VenueDetailPageState extends State<VenueDetailPage> {
     int hour = 8 + index; // Mulai jam 8
     return "${hour.toString().padLeft(2, '0')}:00"; // Format 08:00, 09:00, dst
   });
+
+  @override
+  void initState() {
+    super.initState();
+    // Cek apakah venue ini sudah difavoritkan
+    _isFavorite = _favoriteService.isFavorite(_venueId);
+  }
+
+  void _toggleFavorite() {
+    final venue = FavoriteVenue(
+      id: _venueId,
+      name: _venueName,
+      address: _address,
+      rating: _rating,
+      pricePerHour: _pricePerHour,
+      category: _category,
+    );
+
+    _favoriteService.toggleFavorite(venue);
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+
+    // Tampilkan snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isFavorite
+            ? "Ditambahkan ke favorit"
+            : "Dihapus dari favorit"
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: _isFavorite ? Colors.green : Colors.grey,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,12 +164,15 @@ class _VenueDetailPageState extends State<VenueDetailPage> {
         Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.5), 
+            color: Colors.white.withOpacity(0.5),
             shape: BoxShape.circle
           ),
           child: IconButton(
-            icon: const Icon(Icons.favorite_border, color: Colors.red), 
-            onPressed: () {}
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: Colors.red,
+            ),
+            onPressed: _toggleFavorite,
           ),
         ),
       ],

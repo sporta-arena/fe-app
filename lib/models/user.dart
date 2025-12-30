@@ -1,26 +1,26 @@
 class User {
   final int id;
   final String name;
-  final String email;
+  final String? email; // Nullable untuk partial data (partner)
   final String? phone;
   final String? avatar;
   final String? avatarUrl;
   final DateTime? emailVerifiedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt; // Nullable untuk partial data
+  final DateTime? updatedAt; // Nullable untuk partial data
   final List<Role> roles;
   final List<Permission> permissions;
 
   User({
     required this.id,
     required this.name,
-    required this.email,
+    this.email,
     this.phone,
     this.avatar,
     this.avatarUrl,
     this.emailVerifiedAt,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     this.roles = const [],
     this.permissions = const [],
   });
@@ -36,8 +36,12 @@ class User {
       emailVerifiedAt: json['email_verified_at'] != null
           ? DateTime.parse(json['email_verified_at'])
           : null,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
       roles: json['roles'] != null
           ? (json['roles'] as List).map((r) => Role.fromJson(r)).toList()
           : [],
